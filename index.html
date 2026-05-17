@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 1: What is A/B Experimentation? | DS Interview Prep</title>
+  <meta name="description" content="From the fundamental problem of causal inference to why randomization is the most powerful tool a data scientist has.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --color-text-primary: #111111;
+      --color-text-secondary: #6b7280;
+      --color-text-danger: #dc2626;
+      --color-background-primary: #ffffff;
+      --color-background-secondary: #f9fafb;
+      --color-border-primary: #111111;
+      --color-border-secondary: #d1d5db;
+      --color-border-tertiary: #e5e7eb;
+      --border-radius-md: 6px;
+      --font-mono: 'DM Mono', 'Fira Code', 'Courier New', monospace;
+    }
+
+    body {
+      background: var(--color-background-primary);
+      color: var(--color-text-primary);
+      font-family: 'DM Sans', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      padding: 3rem 1.25rem 5rem;
+    }
+
+    .blog-wrap {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 0 0 3rem;
+    }
+
+    .series-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-text-secondary);
+      margin-bottom: 3rem;
+    }
+
+    .series-header a {
+      color: var(--color-text-secondary);
+      text-decoration: none;
+    }
+
+    .series-header a:hover { color: var(--color-text-primary); }
+
+    .series-sep { opacity: 0.4; }
+
+    .hero {
+      border-left: 3px solid var(--color-text-primary);
+      padding: 2rem 0 2rem 1.5rem;
+      margin-bottom: 3rem;
+    }
+
+    .hero-tag {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--color-text-secondary);
+      margin-bottom: 0.75rem;
+    }
+
+    .hero h1 {
+      font-family: 'Lora', serif;
+      font-size: 32px;
+      font-weight: 600;
+      line-height: 1.25;
+      margin: 0 0 1rem;
+      color: var(--color-text-primary);
+    }
+
+    .hero-sub {
+      font-size: 16px;
+      color: var(--color-text-secondary);
+      line-height: 1.6;
+      margin: 0;
+      font-weight: 300;
+    }
+
+    .meta-row {
+      display: flex;
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 0.5px solid var(--color-border-tertiary);
+      flex-wrap: wrap;
+    }
+
+    .meta-item {
+      font-size: 12px;
+      color: var(--color-text-secondary);
+    }
+
+    .meta-item span {
+      font-weight: 500;
+      color: var(--color-text-primary);
+    }
+
+    .prose {
+      font-size: 16px;
+      line-height: 1.8;
+      color: var(--color-text-primary);
+      margin-bottom: 1.5rem;
+      font-weight: 300;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--color-text-secondary);
+      margin: 2.5rem 0 0.75rem;
+    }
+
+    h2 {
+      font-family: 'Lora', serif;
+      font-size: 22px;
+      font-weight: 600;
+      margin: 0 0 1rem;
+      color: var(--color-text-primary);
+      line-height: 1.3;
+    }
+
+    .callout {
+      border-left: 2px solid var(--color-border-primary);
+      padding: 1rem 1.25rem;
+      margin: 1.5rem 0;
+      background: var(--color-background-secondary);
+    }
+
+    .callout p {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--color-text-secondary);
+      font-style: italic;
+      font-family: 'Lora', serif;
+    }
+
+    .formula-box {
+      background: var(--color-background-secondary);
+      border: 0.5px solid var(--color-border-tertiary);
+      border-radius: var(--border-radius-md);
+      padding: 1.25rem 1.5rem;
+      margin: 1.25rem 0;
+      font-family: var(--font-mono);
+      font-size: 14px;
+      line-height: 2;
+      color: var(--color-text-primary);
+    }
+
+    .formula-label {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-text-secondary);
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 1.25rem 0;
+    }
+
+    .tag {
+      font-size: 12px;
+      font-weight: 500;
+      padding: 4px 12px;
+      border-radius: 999px;
+      border: 0.5px solid var(--color-border-secondary);
+      color: var(--color-text-secondary);
+      background: var(--color-background-primary);
+    }
+
+    .assumption-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 10px;
+      margin: 1.25rem 0;
+    }
+
+    .assumption-card {
+      background: var(--color-background-primary);
+      border: 0.5px solid var(--color-border-tertiary);
+      border-radius: var(--border-radius-md);
+      padding: 0.85rem 1rem;
+    }
+
+    .assumption-card .num {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--color-text-secondary);
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+
+    .assumption-card .label {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--color-text-primary);
+      margin-bottom: 4px;
+    }
+
+    .assumption-card .desc {
+      font-size: 12px;
+      color: var(--color-text-secondary);
+      line-height: 1.5;
+    }
+
+    .lifecycle-steps {
+      margin: 1.25rem 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .lifecycle-step {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+      padding: 0.75rem 0;
+      border-bottom: 0.5px solid var(--color-border-tertiary);
+    }
+
+    .lifecycle-step:last-child { border-bottom: none; }
+
+    .step-num {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--color-text-secondary);
+      min-width: 24px;
+      padding-top: 2px;
+      letter-spacing: 0.05em;
+    }
+
+    .step-content { flex: 1; }
+
+    .step-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--color-text-primary);
+      margin-bottom: 2px;
+    }
+
+    .step-fail {
+      font-size: 12px;
+      color: var(--color-text-danger);
+    }
+
+    .company-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin: 1.25rem 0;
+    }
+
+    .company-table th {
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--color-text-secondary);
+      text-align: left;
+      padding: 0.5rem 0.75rem;
+      border-bottom: 0.5px solid var(--color-border-secondary);
+    }
+
+    .company-table td {
+      padding: 0.65rem 0.75rem;
+      border-bottom: 0.5px solid var(--color-border-tertiary);
+      color: var(--color-text-primary);
+      line-height: 1.5;
+      vertical-align: top;
+    }
+
+    .company-table tr:last-child td { border-bottom: none; }
+
+    .company-name { font-weight: 500; white-space: nowrap; }
+
+    .trap-list {
+      list-style: none;
+      padding: 0;
+      margin: 1.25rem 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .trap-list li {
+      background: var(--color-background-secondary);
+      border-radius: var(--border-radius-md);
+      padding: 0.85rem 1rem;
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--color-text-primary);
+    }
+
+    .trap-q { font-weight: 500; margin-bottom: 4px; }
+    .trap-a { color: var(--color-text-secondary); font-size: 13px; }
+
+    .divider {
+      border: none;
+      border-top: 0.5px solid var(--color-border-tertiary);
+      margin: 2.5rem 0;
+    }
+
+    .key-phrase {
+      display: inline-block;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 3px 10px;
+      background: var(--color-background-secondary);
+      border-radius: var(--border-radius-md);
+      border: 0.5px solid var(--color-border-tertiary);
+      color: var(--color-text-primary);
+      margin-top: 0.5rem;
+      font-family: var(--font-mono);
+    }
+
+    .footer-note {
+      font-size: 13px;
+      color: var(--color-text-secondary);
+      border-top: 0.5px solid var(--color-border-tertiary);
+      padding-top: 1.5rem;
+      margin-top: 2.5rem;
+      line-height: 1.6;
+    }
+
+    .chapter-nav {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 2.5rem;
+      padding-top: 1.5rem;
+      border-top: 0.5px solid var(--color-border-tertiary);
+    }
+
+    .nav-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--color-text-secondary);
+      margin-bottom: 4px;
+      text-align: right;
+    }
+
+    .nav-btn {
+      display: inline-block;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--color-text-primary);
+      background: none;
+      border: 0.5px solid var(--color-border-secondary);
+      border-radius: var(--border-radius-md);
+      padding: 8px 14px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.15s;
+    }
+
+    .nav-btn:hover { background: var(--color-background-secondary); }
+
+    .series-toc {
+      margin: 2.5rem 0 0;
+      padding: 1.5rem;
+      background: var(--color-background-secondary);
+      border-radius: var(--border-radius-md);
+      border: 0.5px solid var(--color-border-tertiary);
+    }
+
+    .series-toc-title {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--color-text-secondary);
+      margin-bottom: 1rem;
+    }
+
+    .series-toc ol {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .series-toc li {
+      display: flex;
+      align-items: baseline;
+      gap: 0.75rem;
+      padding: 0.5rem 0;
+      border-bottom: 0.5px solid var(--color-border-tertiary);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .series-toc li:last-child { border-bottom: none; }
+
+    .toc-num {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--color-text-secondary);
+      min-width: 22px;
+      letter-spacing: 0.05em;
+      flex-shrink: 0;
+    }
+
+    .toc-title {
+      color: var(--color-text-secondary);
+    }
+
+    .toc-title a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .toc-title a:hover { color: var(--color-text-primary); }
+
+    .series-toc li.current .toc-num,
+    .series-toc li.current .toc-title {
+      color: var(--color-text-primary);
+      font-weight: 500;
+    }
+
+    .toc-badge {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: var(--color-text-primary);
+      color: var(--color-background-primary);
+      margin-left: 4px;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+
+    .toc-soon {
+      font-size: 10px;
+      color: var(--color-border-secondary);
+      letter-spacing: 0.04em;
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 600px) {
+      body { padding: 2rem 1rem 4rem; }
+      .hero h1 { font-size: 26px; }
+      .assumption-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="blog-wrap">
+
+  <div class="series-header">
+    <a href="#">DS Interview Prep</a>
+    <span class="series-sep">/</span>
+    A/B Experimentation Series
+    <span class="series-sep">/</span>
+    Chapter 01
+  </div>
+
+  <div class="hero">
+    <div class="hero-tag">Chapter 01 · A/B Experimentation Series</div>
+    <h1>What is A/B Experimentation?</h1>
+    <p class="hero-sub">From the fundamental problem of causal inference to why randomization is the most powerful tool a data scientist has.</p>
+  </div>
+
+  <div class="meta-row">
+    <div class="meta-item">Series <span>DS Interview Prep</span></div>
+    <div class="meta-item">Level <span>Foundational + Rigorous</span></div>
+    <div class="meta-item">Companies <span>Meta · Google · Airbnb · Netflix · Uber</span></div>
+  </div>
+
+  <div class="section-label">The core question</div>
+  <h2>Causation, not correlation</h2>
+  <p class="prose">Most analytical tools tell you what happened. A/B testing tells you <em>why</em>. It answers one question with unusual precision: if I change X, does it <em>cause</em> a meaningful change in Y?</p>
+  <p class="prose">This matters because correlation is everywhere and almost always misleading. Users who see a red button may have higher CTR than those who see a blue one, but that could simply be because red-button users happen to be more engaged. A/B testing eliminates that ambiguity through randomization.</p>
+
+  <div class="callout">
+    <p>"Pre/post analysis conflates time effects with treatment effects. A/B testing holds time constant: the only systematic difference between groups is the thing you changed."</p>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">The math behind it</div>
+  <h2>The fundamental problem of causal inference</h2>
+  <p class="prose">For any user <em>i</em>, you can only ever observe one outcome: either what happened when they got the treatment, or what happened when they did not. Never both. This makes the individual treatment effect permanently unobservable:</p>
+
+  <div class="formula-box">
+    <span class="formula-label">Individual Treatment Effect (unobservable)</span>
+    ITE = Y(1) - Y(0) &nbsp;&nbsp;← can never observe both
+  </div>
+
+  <p class="prose">What we can estimate is the Average Treatment Effect, the expected difference in outcomes across the whole population:</p>
+
+  <div class="formula-box">
+    <span class="formula-label">Average Treatment Effect (what A/B tests estimate)</span>
+    ATE = E[Y(1)] - E[Y(0)]
+  </div>
+
+  <p class="prose">Randomization makes this possible. When users are randomly assigned, the control group's average outcome is a valid estimate of what the treatment group would have experienced without treatment:</p>
+
+  <div class="formula-box">
+    <span class="formula-label">Why randomization works</span>
+    E[Y(0) | Treatment group] = E[Y(0) | Control group]
+  </div>
+
+  <div class="key-phrase">Control group = valid counterfactual for treatment group</div>
+
+  <hr class="divider">
+
+  <div class="section-label">What must be true</div>
+  <h2>Key assumptions</h2>
+
+  <div class="assumption-grid">
+    <div class="assumption-card">
+      <div class="num">01</div>
+      <div class="label">SUTVA</div>
+      <div class="desc">No interference between users. No hidden treatment variations.</div>
+    </div>
+    <div class="assumption-card">
+      <div class="num">02</div>
+      <div class="label">Positivity</div>
+      <div class="desc">Every user has non-zero probability of being in either arm.</div>
+    </div>
+    <div class="assumption-card">
+      <div class="num">03</div>
+      <div class="label">Randomization</div>
+      <div class="desc">Assignment is independent of user characteristics.</div>
+    </div>
+    <div class="assumption-card">
+      <div class="num">04</div>
+      <div class="label">No peeking</div>
+      <div class="desc">Analysis only at pre-specified time. Not when results look good.</div>
+    </div>
+    <div class="assumption-card">
+      <div class="num">05</div>
+      <div class="label">Stable population</div>
+      <div class="desc">Users during the experiment represent the target population.</div>
+    </div>
+  </div>
+
+  <p class="prose">SUTVA deserves special attention. It breaks constantly in real products, and when it does, your ATE estimate is biased downward (dilution bias). The true effect is larger than what you measured.</p>
+
+  <table class="company-table">
+    <thead>
+      <tr><th>Company</th><th>How SUTVA breaks</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="company-name">Meta</td><td>Treatment user posts more, which changes content seen by control users in their network</td></tr>
+      <tr><td class="company-name">Airbnb</td><td>Discounts to treatment guests reduce listing availability for control guests</td></tr>
+      <tr><td class="company-name">Uber</td><td>Treatment rider surge pulls drivers away from control riders</td></tr>
+      <tr><td class="company-name">Email</td><td>Control user receives a forwarded promo from a treatment user</td></tr>
+    </tbody>
+  </table>
+
+  <hr class="divider">
+
+  <div class="section-label">Knowing the limits</div>
+  <h2>When not to run an A/B test</h2>
+  <p class="prose">Knowing when <em>not</em> to experiment is as important as knowing how. This signals mature thinking in interviews.</p>
+
+  <div class="tag-row">
+    <span class="tag">Low traffic</span>
+    <span class="tag">Network effects</span>
+    <span class="tag">Ethical constraints</span>
+    <span class="tag">Irreversible changes</span>
+    <span class="tag">Latent outcomes</span>
+    <span class="tag">New market launch</span>
+    <span class="tag">Tiny population</span>
+  </div>
+
+  <p class="prose">In each case, always follow up with an alternative: causal inference, difference-in-differences, synthetic control. The ability to pivot to the right method is the mark of a senior DS.</p>
+
+  <hr class="divider">
+
+  <div class="section-label">End to end</div>
+  <h2>The experiment lifecycle and where things break</h2>
+
+  <div class="lifecycle-steps">
+    <div class="lifecycle-step">
+      <div class="step-num">01</div>
+      <div class="step-content">
+        <div class="step-title">Define hypothesis</div>
+        <div class="step-fail">Failure: vague or untestable hypothesis</div>
+      </div>
+    </div>
+    <div class="lifecycle-step">
+      <div class="step-num">02</div>
+      <div class="step-content">
+        <div class="step-title">Define metrics (primary + guardrails)</div>
+        <div class="step-fail">Failure: wrong primary metric, no guardrails</div>
+      </div>
+    </div>
+    <div class="lifecycle-step">
+      <div class="step-num">03</div>
+      <div class="step-content">
+        <div class="step-title">Power analysis + runtime</div>
+        <div class="step-fail">Failure: underpowered test, wrong MDE assumption</div>
+      </div>
+    </div>
+    <div class="lifecycle-step">
+      <div class="step-num">04</div>
+      <div class="step-content">
+        <div class="step-title">Implement + ramp up</div>
+        <div class="step-fail">Failure: instrumentation bugs, SRM during ramp</div>
+      </div>
+    </div>
+    <div class="lifecycle-step">
+      <div class="step-num">05</div>
+      <div class="step-content">
+        <div class="step-title">Monitor</div>
+        <div class="step-fail">Failure: peeking, stopping early on significance</div>
+      </div>
+    </div>
+    <div class="lifecycle-step">
+      <div class="step-num">06</div>
+      <div class="step-content">
+        <div class="step-title">Analyze results</div>
+        <div class="step-fail">Failure: multiple comparisons, post-hoc subgroup fishing</div>
+      </div>
+    </div>
+    <div class="lifecycle-step">
+      <div class="step-num">07</div>
+      <div class="step-content">
+        <div class="step-title">Ship decision</div>
+        <div class="step-fail">Failure: ignoring practical significance or guardrail violations</div>
+      </div>
+    </div>
+    <div class="lifecycle-step">
+      <div class="step-num">08</div>
+      <div class="step-content">
+        <div class="step-title">Document</div>
+        <div class="step-fail">Failure: not sharing learnings, repeating past mistakes</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">Company context</div>
+  <h2>How top companies think about experimentation</h2>
+
+  <table class="company-table">
+    <thead>
+      <tr><th>Company</th><th>Key experimentation angle</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="company-name">Meta</td><td>Network effects at scale, ego-network randomization, global holdouts</td></tr>
+      <tr><td class="company-name">Google</td><td>Overlapping experiments, rigorous infra, long holdbacks</td></tr>
+      <tr><td class="company-name">Airbnb</td><td>Two-sided marketplace, listing/geographic randomization, switchback tests</td></tr>
+      <tr><td class="company-name">Netflix</td><td>Long holdouts, surrogate metrics, streaming-specific feedback loops</td></tr>
+      <tr><td class="company-name">Uber</td><td>Supply/demand interference, switchback experiments by time/geography</td></tr>
+      <tr><td class="company-name">Microsoft</td><td>Invented CUPED, ExP platform, variance reduction first</td></tr>
+      <tr><td class="company-name">Amazon</td><td>Guardrail-heavy, extremely conservative ship bar</td></tr>
+      <tr><td class="company-name">Adobe</td><td>Sequential testing, causal inference, multi-armed bandits via Adobe Target</td></tr>
+    </tbody>
+  </table>
+
+  <hr class="divider">
+
+  <div class="section-label">Interview traps</div>
+  <h2>What interviewers are really testing</h2>
+
+  <ul class="trap-list">
+    <li>
+      <div class="trap-q">"It hit p&lt;0.05 on Day 2. Ship it?"</div>
+      <div class="trap-a">No. Peeking problem: p-values are only valid at the pre-specified analysis time. Two days also misses weekly seasonality and novelty effects.</div>
+    </li>
+    <li>
+      <div class="trap-q">"55% traffic went to control instead of 50%. What do you do?"</div>
+      <div class="trap-a">Sample Ratio Mismatch. Stop analysis immediately. Results are invalid. Investigate logging bugs, hash collisions, bot filtering, and ramp artifacts.</div>
+    </li>
+    <li>
+      <div class="trap-q">"Clicks up, revenue flat. Ship?"</div>
+      <div class="trap-a">No. Click quality likely degraded or cannibalization occurred. Revenue is the guardrail that matters.</div>
+    </li>
+    <li>
+      <div class="trap-q">"We cannot A/B test this, so we have no options."</div>
+      <div class="trap-a">Wrong. Use causal inference alternatives: diff-in-diff, synthetic control, quasi-experiments.</div>
+    </li>
+    <li>
+      <div class="trap-q">"The iOS subgroup showed a big lift. Ship to iOS?"</div>
+      <div class="trap-a">Depends. Pre-specified? Trustworthy. Post-hoc? Multiple comparisons risk. Treat as hypothesis and run a confirmatory experiment.</div>
+    </li>
+  </ul>
+
+  <div class="series-toc">
+    <div class="series-toc-title">A/B Experimentation Series — All Chapters</div>
+    <ol>
+      <li class="current">
+        <span class="toc-num">01</span>
+        <span class="toc-title">What is A/B Experimentation?</span>
+        <span class="toc-badge">You are here</span>
+      </li>
+      <li>
+        <span class="toc-num">02</span>
+        <span class="toc-title"><a href="chapter-2.html">Formulating Hypotheses</a></span>
+      </li>
+      <li>
+        <span class="toc-num">03</span>
+        <span class="toc-title">Metrics — Primary, Guardrails, and Proxies</span>
+        <span class="toc-soon">Coming soon</span>
+      </li>
+      <li>
+        <span class="toc-num">04</span>
+        <span class="toc-title">Statistical Power and Sample Size</span>
+        <span class="toc-soon">Coming soon</span>
+      </li>
+      <li>
+        <span class="toc-num">05</span>
+        <span class="toc-title">Randomization and Assignment</span>
+        <span class="toc-soon">Coming soon</span>
+      </li>
+      <li>
+        <span class="toc-num">06</span>
+        <span class="toc-title">Running the Experiment</span>
+        <span class="toc-soon">Coming soon</span>
+      </li>
+      <li>
+        <span class="toc-num">07</span>
+        <span class="toc-title">Analyzing Results</span>
+        <span class="toc-soon">Coming soon</span>
+      </li>
+      <li>
+        <span class="toc-num">08</span>
+        <span class="toc-title">Multiple Testing and Subgroups</span>
+        <span class="toc-soon">Coming soon</span>
+      </li>
+      <li>
+        <span class="toc-num">09</span>
+        <span class="toc-title">CUPED and Variance Reduction</span>
+        <span class="toc-soon">Coming soon</span>
+      </li>
+      <li>
+        <span class="toc-num">10</span>
+        <span class="toc-title">SRM and Instrumentation Bugs</span>
+        <span class="toc-soon">Coming soon</span>
+      </li>
+      <li>
+        <span class="toc-num">11</span>
+        <span class="toc-title">Network Effects and SUTVA Violations</span>
+        <span class="toc-soon">Coming soon</span>
+      </li>
+      <li>
+        <span class="toc-num">12</span>
+        <span class="toc-title">Marketplace Experiments</span>
+        <span class="toc-soon">Coming soon</span>
+      </li>
+      <li>
+        <span class="toc-num">13</span>
+        <span class="toc-title">Novelty Effects and Long-Run Measurement</span>
+        <span class="toc-soon">Coming soon</span>
+      </li>
+      <li>
+        <span class="toc-num">14</span>
+        <span class="toc-title">Holdback Experiments</span>
+        <span class="toc-soon">Coming soon</span>
+      </li>
+      <li>
+        <span class="toc-num">15</span>
+        <span class="toc-title">Sequential Testing and Early Stopping</span>
+        <span class="toc-soon">Coming soon</span>
+      </li>
+      <li>
+        <span class="toc-num">16</span>
+        <span class="toc-title">Causal Inference Alternatives</span>
+        <span class="toc-soon">Coming soon</span>
+      </li>
+      <li>
+        <span class="toc-num">17</span>
+        <span class="toc-title">Experiment Platforms at Scale</span>
+        <span class="toc-soon">Coming soon</span>
+      </li>
+      <li>
+        <span class="toc-num">18</span>
+        <span class="toc-title">Interview Frameworks and Final Q&amp;A Bank</span>
+        <span class="toc-soon">Coming soon</span>
+      </li>
+    </ol>
+  </div>
+
+  <div class="footer-note">
+    Part of an 18-chapter DS interview prep series covering A/B experimentation from first principles to advanced methods. Each chapter includes statistical rigor, company-specific context, and a full interview Q&amp;A bank.
+  </div>
+
+  <div class="chapter-nav">
+    <div>
+      <div class="nav-label">Next chapter</div>
+      <a class="nav-btn" href="chapter-2.html">Chapter 2: Formulating Hypotheses ↗</a>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
