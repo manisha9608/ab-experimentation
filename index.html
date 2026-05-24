@@ -19,6 +19,27 @@
     --blue: #5b9cf6;
   }
 
+  [data-theme="light"] {
+    --bg: #fafaf8;
+    --surface: #f0ede8;
+    --surface2: #e5e1da;
+    --accent: #b8860b;
+    --accent2: #c0392b;
+    --text: #1a1a1a;
+    --muted: #6b6b7a;
+    --border: #d4d0c8;
+    --green: #1a7a52;
+    --blue: #2563eb;
+  }
+
+  [data-theme="light"] p { color: #3a3835; }
+  [data-theme="light"] td { color: #3a3835; }
+  [data-theme="light"] .code-block { color: #2d3550; background: #ebe8e2; }
+  [data-theme="light"] .code-block .comment { color: #888; }
+  [data-theme="light"] .faq-a { color: #3a3835; }
+  [data-theme="light"] .hero::before { background: radial-gradient(circle, rgba(184,134,11,0.1) 0%, transparent 70%); }
+  [data-theme="light"] .hero::after { background: radial-gradient(circle, rgba(37,99,235,0.07) 0%, transparent 70%); }
+
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
@@ -533,6 +554,24 @@
     line-height: 1.5;
   }
 
+  /* THEME TOGGLE */
+  .theme-toggle {
+    margin-left: auto;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.25rem 0.75rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+    white-space: nowrap;
+  }
+
+  .theme-toggle:hover { color: var(--accent); border-color: var(--accent); }
+
   @media (max-width: 640px) {
     .hero { padding: 4rem 1.5rem 3rem; }
     .toc-bar { padding: 0.75rem 1.5rem; }
@@ -565,6 +604,7 @@
   <a href="#companies">Company Flavors</a><span class="toc-sep">/</span>
   <a href="#glossary">Glossary</a><span class="toc-sep">/</span>
   <a href="#faq">Interview FAQ</a>
+  <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">☀ Light</button>
 </nav>
 
 <main class="container">
@@ -1003,6 +1043,27 @@
 </footer>
 
 <script>
+  const root = document.documentElement;
+  const btn = document.getElementById('theme-btn');
+
+  if (localStorage.getItem('theme') === 'light') {
+    root.setAttribute('data-theme', 'light');
+    btn.textContent = '● Dark';
+  }
+
+  function toggleTheme() {
+    const isLight = root.getAttribute('data-theme') === 'light';
+    if (isLight) {
+      root.removeAttribute('data-theme');
+      btn.textContent = '☀ Light';
+      localStorage.setItem('theme', 'dark');
+    } else {
+      root.setAttribute('data-theme', 'light');
+      btn.textContent = '● Dark';
+      localStorage.setItem('theme', 'light');
+    }
+  }
+
   function toggleFaq(el) {
     const answer = el.nextElementSibling;
     const isOpen = el.classList.contains('open');
